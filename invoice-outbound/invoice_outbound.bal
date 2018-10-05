@@ -131,12 +131,7 @@ function processInvoicesToEcommFrontend (model:Invoice[] invoices) {
 }
 
 function getInvoicePayload(model:Invoice invoice) returns (json) {
-
-    // convert string 7,8,9 to json ["7","8","9"]
-    string itemIds = invoice.itemIds;
-    string[] itemIdsArray = itemIds.split(",");
-    json itemIdsJsonArray = check <json> itemIdsArray;
-
+     
     string request = invoice.request;
     io:StringReader sr = new(request);
     xml? requestXml = check sr.readXml();
@@ -147,14 +142,21 @@ function getInvoicePayload(model:Invoice invoice) returns (json) {
         "currency": requestXml.WAERK.getTextValue(),
         "countryCode": invoice.countryCode,
         "invoiceId": invoice.invoiceId,
-        "itemIds": itemIdsJsonArray,
         "additionalProperties":{
             "trackingNumber": invoice.trackingNumber
         }
     };
 
-    if (<string>invoice["SETTLEMENT_ID"] != "") {
+    if (invoice.settlementId != "") {
         invoicePayload["settlementId"] = invoice.settlementId;
+    }
+
+    // convert string 7,8,9 to json ["7","8","9"]
+    string itemIds = invoice.itemIds;
+    if (itemIds != "") {
+        string[] itemIdsArray = itemIds.split(",");
+        json itemIdsJsonArray = check <json> itemIdsArray;
+        invoicePayload["itemIds"] = itemIdsJsonArray;
     }
 
     return invoicePayload;

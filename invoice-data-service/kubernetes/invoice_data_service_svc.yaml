@@ -6,7 +6,6 @@ metadata:
   finalizers: []
   labels:
     app: "invoice-data-service"
-    integration: "refund"
   name: "invoice-data-service-service"
   namespace: "default"
   ownerReferences: []

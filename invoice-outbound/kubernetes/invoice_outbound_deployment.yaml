@@ -1,0 +1,45 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  annotations: {}
+  finalizers: []
+  labels:
+    app: "invoice-outbound"
+    integration: "invoice"
+  name: "invoice-outbound-deployment"
+  namespace: "default"
+  ownerReferences: []
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations: {}
+      finalizers: []
+      labels:
+        app: "invoice-outbound"
+        integration: "invoice"
+      ownerReferences: []
+    spec:
+      containers:
+      - args: []
+        command: []
+        env:
+          - name: ecomm_frontend_invoice_api_url
+            value: "http://payment-front-end-mock-service.default.svc.cluster.local:8280/ecomm-frontend/v2/payments/ref"
+          - name: ecomm_frontend_invoice_api_key
+            value: "l7xx29ab5fa8fd5249419790cfba16f6a9fc" 
+          - name: invoice_data_service_url
+            value: "http://invoice-data-service-service.default.svc.cluster.local:8280/data/invoice"                                                               
+        envFrom: []
+        image: "rajkumar/invoice-outbound:0.1.0"
+        imagePullPolicy: "Always"
+        name: "invoice-outbound-deployment"
+        ports:        
+        volumeMounts: []
+      hostAliases: []
+      imagePullSecrets: []
+      initContainers: []
+      nodeSelector: {}
+      tolerations: []
+      volumes: []

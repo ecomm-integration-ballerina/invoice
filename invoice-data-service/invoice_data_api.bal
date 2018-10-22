@@ -3,7 +3,6 @@ import ballerina/log;
 import raj/invoice.model as model;
 
 endpoint http:Listener invoiceListener {
-    host: "localhost",
     port: 8280
 };
 

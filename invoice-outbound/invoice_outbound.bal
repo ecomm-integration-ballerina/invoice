@@ -23,7 +23,7 @@ int maxRecords = config:getAsInt("invoice.outbound.task.maxRecords");
 string apiKey = config:getAsString("ecomm_frontend.invoice.api.key");
 
 
-function main(string... args) {
+public function main(string... args) {
 
     (function() returns error?) onTriggerFunction = doInvoiceETL;
 
@@ -35,12 +35,11 @@ function main(string... args) {
         interval, delay = delay);
 
     timer.start();
-    runtime:sleep(20000000);
+    runtime:sleep(2000000000);
 }
 
 function doInvoiceETL() returns  error? {
 
-    log:printInfo("Starting invoices ETL");
     log:printInfo("Calling invoiceDataServiceEndpoint to fetch invoices");
 
     http:Request req = new;

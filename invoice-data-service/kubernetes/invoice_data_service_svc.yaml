@@ -1,0 +1,20 @@
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  annotations: {}
+  finalizers: []
+  labels:
+    app: "invoice-data-service"
+    integration: "refund"
+  name: "invoice-data-service-service"
+  namespace: "default"
+  ownerReferences: []
+spec:
+  externalIPs: []
+  loadBalancerSourceRanges: []
+  ports:
+  - port: 8280
+    name: http              
+  selector:
+    app: "invoice-data-service"

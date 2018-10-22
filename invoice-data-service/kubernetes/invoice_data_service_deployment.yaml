@@ -1,0 +1,57 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  annotations: {}
+  finalizers: []
+  labels:
+    app: "invoice-data-service"
+    integration: "invoice"
+  name: "invoice-data-service-deployment"
+  namespace: "default"
+  ownerReferences: []
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations: {}
+      finalizers: []
+      labels:
+        app: "invoice-data-service"
+        integration: "invoice"
+      ownerReferences: []
+    spec:
+      containers:
+      - args: []
+        command: []
+        env:        
+          - name: invoice_db_host
+            value: "staging-db-headless-service.default.svc.cluster.local"
+          - name: invoice_db_port
+            value: "3306"    
+          - name: invoice_db_name
+            value: "WSO2_STAGING" 
+          - name: invoice_db_username
+            valueFrom:
+              secretKeyRef:
+                name: staging-db-secret
+                key: username  
+          - name: invoice_db_password
+            valueFrom:
+              secretKeyRef:
+                name: staging-db-secret
+                key: password 
+        envFrom: []
+        image: "rajkumar/invoice-data-service:0.1.0"
+        imagePullPolicy: "Always"
+        name: "invoice-data-service-deployment"
+        ports:       
+        - containerPort: 8280
+          name: http         
+        volumeMounts: []
+      hostAliases: []
+      imagePullSecrets: []
+      initContainers: []
+      nodeSelector: {}
+      tolerations: []
+      volumes: []

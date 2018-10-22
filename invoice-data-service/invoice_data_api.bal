@@ -4,11 +4,11 @@ import raj/invoice.model as model;
 
 endpoint http:Listener invoiceListener {
     host: "localhost",
-    port: 8089
+    port: 8280
 };
 
 @http:ServiceConfig {
-    basePath: "/invoice"
+    basePath: "/data/invoice"
 }
 service<http:Service> invoiceAPI bind invoiceListener {
 

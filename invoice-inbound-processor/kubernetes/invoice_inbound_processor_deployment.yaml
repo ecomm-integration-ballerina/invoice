@@ -1,0 +1,65 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  annotations: {}
+  finalizers: []
+  labels:
+    app: "invoice-inbound-processor"
+    integration: "invoice"
+  name: "invoice-inbound-processor-deployment"
+  namespace: "default"
+  ownerReferences: []
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations: {}
+      finalizers: []
+      labels:
+        app: "invoice-inbound-processor"
+        integration: "invoice"
+      ownerReferences: []
+    spec:
+      containers:
+      - args: []
+        command: []
+        env: 
+          - name: invoice_mb_host
+            value: "b7a-mb-service.default.svc.cluster.local"
+          - name: invoice_mb_port
+            value: "5672" 
+          - name: ecomm_backend_invoice_sftp_host
+            value: "refund-sftp-headless-service.default.svc.cluster.local"
+          - name: ecomm_backend_invoice_sftp_port
+            value: "22"   
+          - name: ecomm_backend_invoice_sftp_username
+            valueFrom:
+              secretKeyRef:
+                name: ecomm-back-end-sftp-secret
+                key: username 
+          - name: ecomm_backend_invoice_sftp_password
+            valueFrom:
+                secretKeyRef:
+                  name: ecomm-back-end-sftp-secret
+                  key: password 
+          - name: ecomm_backend_invoice_sftp_path
+            value: "/var/sftp/invoice"             
+          - name: ecomm_backend_invoice_etl_interval
+            value: "10000" 
+          - name: ecomm_backend_invoice_etl_initialDelay
+            value: "500"                         
+          - name: invoice_data_service_url
+            value: "http://invoice-data-service-service.default.svc.cluster.local:8280/data/invoice"
+        envFrom: []
+        image: "rajkumar/invoice-inbound-processor:0.1.0"
+        imagePullPolicy: "Always"
+        name: "invoice-inbound-processor-deployment"
+        ports:        
+        volumeMounts: []
+      hostAliases: []
+      imagePullSecrets: []
+      initContainers: []
+      nodeSelector: {}
+      tolerations: []
+      volumes: []

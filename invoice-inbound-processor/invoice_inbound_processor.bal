@@ -18,7 +18,7 @@ endpoint ftp:Client invoiceSFTPClient {
 };
 
 endpoint http:Client invoiceDataEndpoint {
-    url: config:getAsString("invoice.api.url")
+    url: config:getAsString("invoice.data.service.url")
 };
 
 endpoint mb:SimpleQueueReceiver invoiceInboundQueue {
@@ -54,10 +54,10 @@ function handleInvoice(string path) returns boolean {
 
     match invoiceOrError {
 
-        io:ByteChannel channel => {
-            io:CharacterChannel characters = new(channel, "utf-8");
+        io:ByteChannel byteChannel => {
+            io:CharacterChannel characters = new(byteChannel, "utf-8");
             xml invoice = check characters.readXml();
-            _ = channel.close();
+            _ = byteChannel.close();
 
             json invoices = generateInvoicesJson(invoice);
 

@@ -4,6 +4,8 @@ import ballerina/config;
 import ballerina/task;
 import ballerina/runtime;
 import ballerina/io;
+import ballerina/mb;
+import ballerina/time;
 import raj/invoice.model as model;
 
 endpoint http:Client invoiceDataServiceEndpoint {
@@ -12,6 +14,12 @@ endpoint http:Client invoiceDataServiceEndpoint {
 
 endpoint http:Client ecommFrontendInvoiceAPIEndpoint {
     url: config:getAsString("ecomm_frontend.invoice.api.url")
+};
+
+endpoint mb:SimpleQueueSender tmcQueue {
+    host: config:getAsString("tmc.mb.host"),
+    port: config:getAsInt("tmc.mb.port"),
+    queueName: config:getAsString("tmc.mb.queueName")
 };
 
 int count;
@@ -99,6 +107,7 @@ function processInvoicesToEcommFrontend (model:Invoice[] invoices) {
 
         var response = ecommFrontendInvoiceAPIEndpoint->post("/" + untaint orderNo + "/capture/async", req);
 
+        boolean success;
         match response {
             http:Response resp => {
 
@@ -106,6 +115,7 @@ function processInvoicesToEcommFrontend (model:Invoice[] invoices) {
                 if (httpCode == 201) {
                     log:printInfo("Successfully processed invoice : " + invoiceId + " to ecomm-frontend");
                     updateProcessFlag(tid, retryCount, "C", "sent to ecomm-frontend");
+                    success = true;
                 } else {
                     match resp.getTextPayload() {
                         string payload => {
@@ -125,6 +135,12 @@ function processInvoicesToEcommFrontend (model:Invoice[] invoices) {
                 log:printError("Error while calling ecomm-frontend for invoice : " + invoiceId, err = err);
                 updateProcessFlag(tid, retryCount + 1, "E", err.message);
             }
+        }
+
+        if (success) {
+            publishToTMCQueue(jsonPayload, orderNo, "SENT");
+        } else {
+            publishToTMCQueue(jsonPayload, orderNo, "NOT_SENT");
         }
     }
 }
@@ -230,4 +246,48 @@ function handleError(error e) {
     log:printError("Error in processing invoices to ecomm-frontend", err = e);
     // I don't want to stop the ETL if backend is down
     // timer.stop();
+}
+
+function publishToTMCQueue (json req, string orderNo, string status) {
+
+    time:Time time = time:currentTime();
+    string transactionDate = time.format("yyyyMMddHHmmssSSS");
+    json payload = {
+        "externalKey": null,
+        "processInstanceID": orderNo,
+        "receiverDUNSno":"OPS" ,
+        "senderDUNSno": "ECC",
+        "transactionDate": transactionDate,
+        "version": "V01",
+        "transactionFlow": "INBOUND",
+        "transactionStatus": status,
+        "documentID": null,
+        "documentName": "INVOICE_ECC_OPS",
+        "documentNo": "INVOICE_ECC_OPS_" + orderNo,
+        "documentSize": null,
+        "documentStatus": status,
+        "documentType": "json",
+        "payload": req,
+        "appName": "INVOICE_ECC_OPS",
+        "documentFilename": null
+     };
+
+    log:printInfo("Sending to tmcQueue, order: " + orderNo + ", payload:\n" + payload.toString());
+
+    match (tmcQueue.createTextMessage(payload.toString())) {
+        error err => {
+            log:printError("Failed to send to tmcQueue, order: " + orderNo, err=err);
+        }
+        mb:Message msg => {
+            var ret = tmcQueue->send(msg);
+            match ret {
+                error err => {
+                    log:printError("Failed to send to tmcQueue, order: " + orderNo, err=err);
+                }
+                () => {
+                    log:printInfo("Sent to tmcQueue, order: " + orderNo);
+                }
+            }
+        }
+    }
 }

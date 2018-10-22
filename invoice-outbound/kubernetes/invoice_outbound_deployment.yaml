@@ -25,6 +25,10 @@ spec:
       - args: []
         command: []
         env:
+          - name: tmc_mb_host
+            value: "b7a-mb-service.default.svc.cluster.local"
+          - name: tmc_mb_port
+            value: "5672"    
           - name: ecomm_frontend_invoice_api_url
             value: "http://payment-front-end-mock-service.default.svc.cluster.local:8280/ecomm-frontend/v2/payments/ref"
           - name: ecomm_frontend_invoice_api_key
